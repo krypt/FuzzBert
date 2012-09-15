@@ -1,44 +1,68 @@
 
 class FuzzBert::Executor
 
-  def initialize(test, poolsize=4, limit=-1)
+  attr_reader :test, :pool_size, :limit, :handler
+
+  DEFAULT_HANDLER = FuzzBert::Handler::FileOutput
+  DEFAULT_POOL_SIZE = 4
+  DEFAULT_LIMIT = -1
+
+  def initialize(test, args = { 
+    handler: DEFAULT_HANDLER.new,
+    pool_size: DEFAULT_POOL_SIZE,
+    limit: DEFAULT_LIMIT
+  })
     @test = test
-    @poolsize = poolsize
+    @pool_size = args[:pool_size] || DEFAULT_POOL_SIZE
+    @limit = args[:limit] || DEFAULT_LIMIT
+    @handler = args[:handler] || DEFAULT_HANDLER.new
     @data_cache = {}
     @n = 0
-    @limit = limit
+    @running = true
   end
 
-  def run(objects)
-    objects = [objects] unless objects.respond_to?(:each)
-    producer = ObjectProducer.new(objects)
+  def run(generators)
+    generators = [generators] unless generators.respond_to?(:each)
+    producer = GeneratorProducer.new(generators)
 
     trap(:CHLD) { on_child_exit(producer.next) }
     trap(:INT) { graceful_exit }
     
-    @poolsize.times { run_test(producer.next) }
-    sleep
+    @pool_size.times { run_test(producer.next) }
+    @running = true
+    @limit == -1 ? sleep : conditional_sleep
   end
 
   private
 
-  def run_test(obj)
-    data = obj.to_data
-    pid = @test.run(data)
-    @data_cache[pid] = data
+  def run_test(generator)
+    data = generator.to_data
+    pid = fork do
+      begin
+        @test.run(data)
+      rescue StandardError
+        abort
+      end
+    end
+    id = "#{@test.description}/#{generator.description}"
+    @data_cache[pid] = [id, data]
   end
 
-  def on_child_exit(obj)
+  def on_child_exit(generator)
     begin
       while exitval = Process.wait2(-1, Process::WNOHANG)
         pid = exitval[0]
         status = exitval[1]
-        data = @data_cache.delete(pid)
+        data_ary = @data_cache.delete(pid)
         unless status.success?
-          save(data, pid, status) unless interrupted(status)
+          handle(data_ary[0], data_ary[1], pid, status) unless interrupted(status)
         end
         @n += 1
-        run_test(obj) if @limit == -1 || @n < @limit
+        if @limit == -1 || @n < @limit
+          run_test(generator) 
+        else
+          @running = false
+        end
       end
     rescue Errno::ECHILD
     end
@@ -53,9 +77,8 @@ class FuzzBert::Executor
     exit 0
   end
 
-  def save(data, pid, status)
-    prefix = status.termsig ? "crash" : "bug"
-    File.open("#{prefix}#{pid}", "wb") { |f| f.print(data) }
+  def handle(id, data, pid, status)
+    @handler.handle(id, data, pid, status)
   end
 
   def interrupted(status)
@@ -63,15 +86,19 @@ class FuzzBert::Executor
     return true if status.termsig == nil || status.termsig == 2
   end
 
-  class ObjectProducer
-    def initialize(objects)
+  def conditional_sleep
+    sleep 0.5 until @running == false
+  end
+
+  class GeneratorProducer
+    def initialize(generators)
       @i = 0
-      @objects = objects
+      @generators = generators
     end
 
     def next
-      obj = @objects[@i]
-      @i = (@i + 1) % @objects.size
+      obj = @generators[@i]
+      @i = (@i + 1) % @generators.size
       obj
     end
   end

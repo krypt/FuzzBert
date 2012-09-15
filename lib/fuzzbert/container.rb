@@ -1,17 +1,17 @@
 
 class FuzzBert::Container
 
-  def initialize(objects=[])
-    @objects = objects
+  def initialize(generators=[])
+    @generators = generators
   end
 
-  def <<(obj)
-    @objects << obj
+  def <<(generator)
+    @generator << generator
   end
 
   def to_data
     "".tap do |buf|
-      @objects.each { |obj| buf << obj.to_data }
+      @generators.each { |gen| buf << gen.to_data }
     end
   end
 

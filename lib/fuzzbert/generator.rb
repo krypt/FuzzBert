@@ -1,7 +1,10 @@
 
-class FuzzBert::GeneratorObject
+class FuzzBert::Generator
 
-  def initialize(generator=nil, &blk)
+  attr_reader :description
+
+  def initialize(desc, generator=nil, &blk)
+    @description = desc
     @generator = generator || blk
     raise RuntimeError.new("No generator given") unless @generator
   end

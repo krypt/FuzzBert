@@ -1,19 +1,16 @@
 
 class FuzzBert::Test
 
-  def initialize(&runner)
+  attr_reader :description
+
+  def initialize(desc=nil, &runner)
     raise RuntimeError.new unless block_given?
+    @description = desc
     @runner = runner
   end
 
   def run(data)
-    fork do
-      begin
-        @runner.call(data)
-      rescue StandardError
-        abort
-      end
-    end
+    @runner.call data
   end
 
 end
