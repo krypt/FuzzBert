@@ -1,10 +1,10 @@
 
 class FuzzBert::Mutator < FuzzBert::Generator
 
-  def initialize(desc, value)
+  def initialize(value)
     orig = value.dup
     orig.force_encoding(Encoding::BINARY)
-    super(desc) do
+    super("Mutator") do
       #select a byte
       i = FuzzBert::PRNG.rand(value.size)
       old = orig[i].ord
