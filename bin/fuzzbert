@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+begin
+  require 'fuzzbert'
+  FuzzBert::AutoRun.autorun
+rescue LoadError
+  $stderr.puts "Could not find fuzzbert."
+  exit(1)
+end

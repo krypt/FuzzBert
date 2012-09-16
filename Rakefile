@@ -1,5 +1,6 @@
 require 'rake'
 require 'rspec/core/rake_task'
+require 'fuzzbert/rake_task'
 
 def java?
   !! (RUBY_PLATFORM =~ /java/)
@@ -17,5 +18,11 @@ RSpec::Core::RakeTask.new(:spec) do |spec|
   spec.rspec_opts = ['-c', '--format d']
   spec.verbose = true
   spec.fail_on_error = true
+end
+
+FuzzBert::RakeTask.new(:fuzz) do |spec|
+  spec.fuzzbert_path = 'bin/fuzzbert'
+  spec.fuzzbert_opts = ['--limit 20', '--console']
+  spec.pattern = 'test/**/fuzz_*.rb'
 end
 

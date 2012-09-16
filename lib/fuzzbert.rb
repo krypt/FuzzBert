@@ -20,6 +20,7 @@ module FuzzBert
 
 end
 
+require_relative 'fuzzbert/version'
 require_relative 'fuzzbert/generators'
 require_relative 'fuzzbert/generator'
 require_relative 'fuzzbert/generation'

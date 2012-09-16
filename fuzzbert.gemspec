@@ -11,5 +11,7 @@ Gem::Specification.new do |s|
   s.files += ["LICENSE"]
   s.test_files = Dir.glob('spec/**/*.rb')
   s.extra_rdoc_files = [ "README.rdoc" ]
+  s.bindir = "bin"
+  s.executables = ['fuzzbert']
   s.require_path = "lib"
 end
