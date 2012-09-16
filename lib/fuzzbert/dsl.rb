@@ -1,7 +1,7 @@
 module FuzzBert::DSL
   def fuzz(*args, &blk)
-    desc = FuzzBert::Description.fuzz(*args, blk)
-    p desc
+    suite = FuzzBert::TestSuite.create(*args, &blk)
+    FuzzBert::AutoRun.register(suite)
   end
 end
 

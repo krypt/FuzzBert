@@ -1,11 +1,7 @@
 
 class FuzzBert::Test
 
-  attr_reader :description
-
-  def initialize(desc=nil, &runner)
-    raise RuntimeError.new unless block_given?
-    @description = desc
+  def initialize(runner)
     @runner = runner
   end
 

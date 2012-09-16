@@ -1,75 +1,81 @@
-
 class FuzzBert::Executor
 
-  attr_reader :test, :pool_size, :limit, :handler
+  attr_reader :pool_size, :limit, :handler
 
-  DEFAULT_HANDLER = FuzzBert::Handler::FileOutput
   DEFAULT_POOL_SIZE = 4
   DEFAULT_LIMIT = -1
+  DEFAULT_HANDLER = FuzzBert::Handler::FileOutput
 
-  def initialize(test, args = { 
-    handler: DEFAULT_HANDLER.new,
+  def initialize(suites, args = { 
     pool_size: DEFAULT_POOL_SIZE,
-    limit: DEFAULT_LIMIT
+    limit: DEFAULT_LIMIT,
+    handler: DEFAULT_HANDLER.new
   })
-    @test = test
     @pool_size = args[:pool_size] || DEFAULT_POOL_SIZE
     @limit = args[:limit] || DEFAULT_LIMIT
     @handler = args[:handler] || DEFAULT_HANDLER.new
     @data_cache = {}
     @n = 0
-    @running = true
+    @exiting = false
+    @producer = DataProducer.new(suites)
   end
 
-  def run(generators)
-    generators = [generators] unless generators.respond_to?(:each)
-    producer = GeneratorProducer.new(generators)
+  def run
+    trap_child_exit
+    trap_interrupt
 
-    trap(:CHLD) { on_child_exit(producer.next) }
-    trap(:INT) { graceful_exit }
-    
-    @pool_size.times { run_test(producer.next) }
+    @pool_size.times { run_instance(*@producer.next) }
     @running = true
     @limit == -1 ? sleep : conditional_sleep
   end
 
   private
 
-  def run_test(generator)
+  def run_instance(description, test, generator)
     data = generator.to_data
     pid = fork do
       begin
-        @test.run(data)
+        test.run(data)
       rescue StandardError
         abort
       end
     end
-    id = "#{@test.description}/#{generator.description}"
+    id = "#{description}/#{generator.description}"
     @data_cache[pid] = [id, data]
   end
 
-  def on_child_exit(generator)
-    begin
-      while exitval = Process.wait2(-1, Process::WNOHANG)
-        pid = exitval[0]
-        status = exitval[1]
-        data_ary = @data_cache.delete(pid)
-        unless status.success?
-          handle(data_ary[0], data_ary[1], pid, status) unless interrupted(status)
+  def trap_child_exit
+    trap(:CHLD) do 
+      begin
+        while exitval = Process.wait2(-1, Process::WNOHANG)
+          pid = exitval[0]
+          status = exitval[1]
+          data_ary = @data_cache.delete(pid)
+          unless status.success?
+            handle(data_ary[0], data_ary[1], pid, status) unless interrupted(status)
+          end
+          @n += 1
+          if @limit == -1 || @n < @limit
+            run_instance(*@producer.next) 
+          else
+            @running = false
+          end
         end
-        @n += 1
-        if @limit == -1 || @n < @limit
-          run_test(generator) 
-        else
-          @running = false
-        end
+      rescue Errno::ECHILD
       end
-    rescue Errno::ECHILD
+    end
+  end
+
+  def trap_interrupt
+    trap(:INT) do
+      exit! (1) if @exiting
+      @exiting = true
+      graceful_exit
     end
   end
 
   def graceful_exit
-    puts "\nExiting..."
+    puts "\nExiting...Interrupt again to exit immediately"
     begin
       while Process.wait; end
     rescue Errno::ECHILD
@@ -87,19 +93,59 @@ class FuzzBert::Executor
   end
 
   def conditional_sleep
-    sleep 0.5 until @running == false
+    sleep 0.1 until @running == false
   end
 
-  class GeneratorProducer
-    def initialize(generators)
-      @i = 0
-      @generators = generators
+  class DataProducer
+    def initialize(suites)
+      @ring = Ring.new(suites)
+      update
+    end
+
+    def update
+      @suite = @ring.next
+      @gen_iter = ProcessSafeEnumerator.new(@suite.generators)
     end
 
     def next
-      obj = @generators[@i]
-      @i = (@i + 1) % @generators.size
-      obj
+      gen = nil
+      until gen
+        begin
+          gen = @gen_iter.next
+        rescue StopIteration
+          update
+        end
+      end
+      [@suite.description, @suite.test, gen]
+    end
+      
+    class Ring
+      def initialize(objs)
+        @i = 0
+        objs = [objs] unless objs.respond_to?(:each)
+        @objs = objs.to_a
+      end
+
+      def next
+        obj = @objs[@i]
+        @i = (@i + 1) % @objs.size
+        obj
+      end
+    end
+
+    #needed because the Fiber used for normal Enumerators has race conditions
+    class ProcessSafeEnumerator
+      def initialize(ary)
+        @i = 0
+        @ary = ary.to_a
+      end
+
+      def next
+        obj = @ary[@i]
+        raise StopIteration unless obj
+        @i += 1
+        obj
+      end
     end
   end
 

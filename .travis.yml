@@ -1,0 +1,16 @@
+script: 'ci/travis.rb'
+rvm:
+  - ruby-head
+  - 1.9.3
+  - rbx-19mode
+gemfile:
+  - Gemfile
+notifications:
+  email:
+    recipients:
+      - Martin.Bosslet@googlemail.com
+    on_success: always
+    on_failure: always
+branches:
+  only:
+    - master

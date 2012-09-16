@@ -1,6 +1,7 @@
 require 'stringio'
 
 class FuzzBert::Template
+  include FuzzBert::Generation
 
   def initialize(template)
     @template = Parser.new(template).parse
@@ -50,9 +51,15 @@ class FuzzBert::Template
         @buf = @io.readchar
 
         case @buf
-        when '{'
-          @buf = ""
-          :IDENTIFIER
+        when '$'
+          c = @io.readchar
+          if c == "{"
+            @buf = ""
+            :IDENTIFIER
+          else
+            @buf << c
+            :TEXT
+          end
         when '\\'
           @buf = ""
           :TEXT
@@ -85,15 +92,24 @@ class FuzzBert::Template
     def parse_text
       text = @buf
       begin
-        until (c = @io.readchar) == '{'
-          if c == '\\'
-            text << parse_escape
+        loop do
+          until (c = @io.readchar) == '$'
+            if c == '\\'
+              text << parse_escape
+            else
+              text << c
+            end
+          end
+
+          d = @io.readchar
+          if d == "{"
+            @state = :IDENTIFIER
+            return Text.new(text)
           else
             text << c
+            text << d
           end
         end
-        @state = :IDENTIFIER
-        return Text.new(text)
       rescue EOFError
         @state = :EOF
         Text.new(text)

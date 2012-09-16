@@ -22,13 +22,13 @@ end
 
 require_relative 'fuzzbert/generators'
 require_relative 'fuzzbert/generator'
+require_relative 'fuzzbert/generation'
 require_relative 'fuzzbert/template'
 require_relative 'fuzzbert/container'
 require_relative 'fuzzbert/test'
 require_relative 'fuzzbert/error_handler'
+require_relative 'fuzzbert/test_suite'
 require_relative 'fuzzbert/executor'
-require_relative 'fuzzbert/description'
+require_relative 'fuzzbert/autorun'
 require_relative 'fuzzbert/dsl'
-
-
 
