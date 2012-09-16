@@ -1,5 +1,6 @@
 
 class FuzzBert::Generator
+  include FuzzBert::Generation
 
   attr_reader :description
 
