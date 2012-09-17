@@ -3,7 +3,7 @@ require 'fuzzbert'
 
 describe FuzzBert::Executor do
 
-  describe "new" do
+  describe "::new" do
     let(:test) do
       test = FuzzBert::Test.new(lambda { |data| data })
       FuzzBert::TestSuite.create("suite") do
@@ -16,6 +16,14 @@ describe FuzzBert::Executor do
       -> { FuzzBert::Executor.new }.should raise_error ArgumentError
       FuzzBert::Executor.new(test).should be_an_instance_of(FuzzBert::Executor)
       FuzzBert::Executor.new([test]).should be_an_instance_of(FuzzBert::Executor)
+    end
+
+    it "raises an ArgumentError if the TestSuite argument is nil" do
+      -> { FuzzBert::Executor.new(nil) }.should raise_error ArgumentError
+    end
+
+    it "raises an ArgumentError if the TestSuite argument is empty" do
+      -> { FuzzBert::Executor.new([]) }.should raise_error ArgumentError
     end
 
     it "allows a pool_size argument" do
@@ -36,6 +44,12 @@ describe FuzzBert::Executor do
       executor.handler.should == handler
     end
 
+    it "allows a sleep_delay argument" do
+      delay = 0.1
+      executor = FuzzBert::Executor.new(test, sleep_delay: delay)
+      executor.sleep_delay.should == delay
+    end
+
     it "defaults pool_size to 4" do
       FuzzBert::Executor.new(test).pool_size.should == 4
     end
@@ -47,18 +61,22 @@ describe FuzzBert::Executor do
     it "defaults handler to a FileOutputHandler" do
       FuzzBert::Executor.new(test).handler.should be_an_instance_of(FuzzBert::Handler::FileOutput)
     end
+
+    it "defaults sleep_delay to 1" do
+      FuzzBert::Executor.new(test).sleep_delay.should == 1
+    end
   end
 
   describe "#run" do
-    subject { FuzzBert::Executor.new(suite, pool_size: 1, limit: 1, handler: handler).run }
+    subject { FuzzBert::Executor.new(suite, pool_size: 1, limit: 1, handler: handler, sleep_delay: 0.05).run }
 
     class TestHandler
       def initialize(&blk)
         @handler = blk
       end
 
-      def handle(id, data, pid, status)
-        @handler.call(id, data, pid, status)
+      def handle(error_data)
+        @handler.call(error_data)
       end
     end
 
@@ -69,7 +87,7 @@ describe FuzzBert::Executor do
           data("1") { -> { "a" } }
         end
       end
-      let (:handler) { TestHandler.new { |i, d, p, s| raise RuntimeError.new } }
+      let (:handler) { TestHandler.new { |data| raise RuntimeError.new } }
       it { -> { subject }.should_not raise_error }
     end
 
@@ -81,7 +99,7 @@ describe FuzzBert::Executor do
           data("1") { -> { "a" } }
         end
       end
-      let (:handler) { TestHandler.new { |i, d, p, s| called = true } }
+      let (:handler) { TestHandler.new { |data| called = true } }
       it { -> { subject }.should_not raise_error; called.should be_true }
     end
 
@@ -92,7 +110,7 @@ describe FuzzBert::Executor do
           data("1") { -> { "a" } }
         end
       end
-      let (:handler) { TestHandler.new { |i, d, p, s| raise RuntimeError.new } }
+      let (:handler) { TestHandler.new { |data| raise RuntimeError.new } }
       it { -> { subject }.should_not raise_error }
     end
 
@@ -104,7 +122,7 @@ describe FuzzBert::Executor do
           data("1") { -> { "a" } }
         end
       end
-      let (:handler) { TestHandler.new { |i, d, p, s| called = true } }
+      let (:handler) { TestHandler.new { |data| called = true } }
       let (:generator) { FuzzBert::Generator.new("test") { "a" } }
       it { -> { subject }.should_not raise_error; called.should be_true }
     end if false #don't want to SEGV every time

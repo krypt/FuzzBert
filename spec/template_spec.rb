@@ -3,13 +3,13 @@ require 'fuzzbert'
 
 describe FuzzBert::Template do
 
-  describe "new" do
+  describe "::new" do
     it "takes a String parameter" do
       FuzzBert::Template.new("test").should be_an_instance_of(FuzzBert::Template)
     end
   end
 
-  describe "set" do
+  describe "#set" do
     it "allows to define callbacks for template variables" do
       t = FuzzBert::Template.new "a${var}c"
       t.set(:var) { "b" }
@@ -23,7 +23,14 @@ describe FuzzBert::Template do
     end
   end
 
-  describe "to_data" do
+  describe "#generator" do
+    it "implements Generation" do
+      t = FuzzBert::Template.new "test"
+      t.generator.should_not be_nil
+    end
+  end
+
+  describe "#to_data" do
     it "can replace multiple template variables that possess a callback defined by set" do
       t = FuzzBert::Template.new "a${var1}c${var2}"
       t.set(:var1) { "b" }
@@ -78,6 +85,16 @@ describe FuzzBert::Template do
       t.set(:id) { "5" }
       t.set(:name) { "FuzzBert" }
       t.to_data.should == "{ user: { id: 5, name: \"FuzzBert\" } }\n"
+    end
+
+    it "raises an error if a variable callback hasn't been set and indicates which one" do
+      t = FuzzBert::Template.new "a${var}c"
+      begin
+        t.to_data
+        fail
+      rescue StandardError => e
+        e.message.should include("var")
+      end
     end
   end
 

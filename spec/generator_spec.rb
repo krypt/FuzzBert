@@ -3,7 +3,7 @@ require 'fuzzbert'
 
 describe FuzzBert::Generator do
 
-  describe "new" do
+  describe "::new" do
     it "takes a description and a generator" do
       desc = "desc"
       value = "test"
@@ -11,8 +11,17 @@ describe FuzzBert::Generator do
       gen.description.should == desc
       gen.to_data.should == value
     end
+  end
 
-    it "takes a block that is executed when to_data is called when no explicit generator is given" do
+  describe "#generator" do
+    it "implements Generation" do
+      gen = FuzzBert::Generator.new("test") { "test" }
+      gen.generator.should_not be_nil
+    end
+  end
+
+  describe "#to_data" do
+    it "returns the value returned by its generator" do
       value = "test"
       desc = "desc"
       gen = FuzzBert::Generator.new(desc) { value }
@@ -20,6 +29,5 @@ describe FuzzBert::Generator do
       gen.to_data.should == value
     end
   end
-
 end
 

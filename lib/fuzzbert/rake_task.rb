@@ -64,18 +64,19 @@ class FuzzBert::RakeTask < ::Rake::TaskLib
 
   private
 
-  def command
-    cmd_parts = []
-    cmd_parts << RUBY
-    cmd_parts << ruby_opts
-    cmd_parts << "-S" << fuzzbert_path
-    cmd_parts << fuzzbert_opts
-    cmd_parts << pattern
-    cmd_parts.flatten.reject(&blank).join(" ")
-  end
+    def command
+      cmd_parts = []
+      cmd_parts << RUBY
+      cmd_parts << ruby_opts
+      cmd_parts << "-S" << fuzzbert_path
+      cmd_parts << fuzzbert_opts
+      cmd_parts << pattern
+      cmd_parts.flatten.reject(&blank).join(" ")
+    end
 
-  def blank
-    lambda {|s| s.nil? || s == ""}
-  end
+    def blank
+      lambda {|s| s.nil? || s == ""}
+    end
+
 end
 

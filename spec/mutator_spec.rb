@@ -3,16 +3,18 @@ require 'fuzzbert'
 
 describe FuzzBert::Mutator do
 
-  describe "new" do
+  describe "::new" do
     it "takes a (valid) base value" do
       value = "test"
       mut = FuzzBert::Mutator.new(value)
     end
   end
 
-  it "includes Generation" do
-    mut = FuzzBert::Mutator.new("value")
-    mut.generator.should_not be_nil
+  describe "#generator" do
+    it "implements Generation" do
+      mut = FuzzBert::Mutator.new("value")
+      mut.generator.should_not be_nil
+    end
   end
 
   describe "#to_data" do

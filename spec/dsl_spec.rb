@@ -84,5 +84,48 @@ describe FuzzBert::TestSuite do
     end
   end
 
+  it "raises an error when no block is given" do
+    -> { FuzzBert::TestSuite.create "test" }.should raise_error
+  end
+
+  it "raises an error when the deploy block is missing" do
+    lambda do
+      FuzzBert::TestSuite.create "test" do
+          data("1") { FuzzBert::Generators.random }
+      end.should raise_error
+    end
+  end
+
+  it "raises an error when the data blocks are missing" do
+    lambda do
+      FuzzBert::TestSuite.create "test" do
+          deploy { |data| data }
+      end.should raise_error
+    end
+  end
+
+  describe "deploy" do
+    it "raises an error when no block is given" do
+      lambda do
+        FuzzBert::TestSuite.create "test" do
+          deploy
+
+          data("1") { FuzzBert::Generators.random }
+        end
+      end.should raise_error
+    end
+  end
+
+  describe "data" do
+    it "raises an error when no block is given" do
+      lambda do
+        FuzzBert::TestSuite.create "test" do
+          deploy { |data| data }
+          data("1")
+        end
+      end.should raise_error
+    end
+  end
+
 end
 

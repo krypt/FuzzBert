@@ -2,7 +2,7 @@ require 'fileutils'
 
 Gem::Specification.new do |s|
   s.name = 'fuzzbert'
-  s.version = '1.0.0'
+  s.version = '1.0.1'
   s.author = 'Martin Bosslet'
   s.email = 'Martin.Bosslet@gmail.com'
   s.homepage = 'https://github.com/krypt/FuzzBert'
