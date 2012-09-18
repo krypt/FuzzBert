@@ -11,7 +11,11 @@ module FuzzBert::AutoRun
   end
 
   def autorun
-    options, files = process_args(ARGV)
+    autorun_with_args(ARGV)
+  end
+
+  def autorun_with_args(argv)
+    options, files = process_args(argv)
     load_files(files)
     run(options)
   end
@@ -75,9 +79,13 @@ CTRL+C when you are done or specify a limit with '--limit'.
           options[:handler] = Class.new do
             @@path = path
 
-            def handle(id, data, pid, status)
-              @inner ||= Object.const_get(@@path).new
-              @inner.handle(id, data, pid, status)
+            def handle(error_data)
+              @inner ||= class_for_name(@@path).new
+              @inner.handle(error_data)
+            end
+
+            def class_for_name(path)
+              path.split('::').inject(Object) { |mod, class_name| mod.const_get(class_name) }
             end
           end.new
         end
@@ -93,6 +101,7 @@ CTRL+C when you are done or specify a limit with '--limit'.
       raise ArgumentError.new("No file pattern was given") if args.empty?
       [options, args]
     end
+
 
 end
 

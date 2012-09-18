@@ -162,7 +162,7 @@ fuzz "Define here as usual" do
 end
 ```
 
-Then tell fuzzbert by telling it about the custom handler:
+Now you just need to tell FuzzBert to use your custom handler:
 
     fuzzbert --handler MyHandler my/fuzzbert/file
 
@@ -198,7 +198,7 @@ end
 ```
 
 Simply specify your template variables using `${..}` and assign a callback for
-them via `set`. Of course you may escape the dollar sign with a back slash as
+them via `set`. Of course you may escape the dollar sign with a backslash as
 usual.
 
 ## Mutators
