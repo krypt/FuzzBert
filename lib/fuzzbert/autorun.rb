@@ -38,8 +38,26 @@ module FuzzBert::AutoRun
       orig_args = args.dup
 
       OptionParser.new do |opts|
-        opts.banner  = 'Usage: fuzzbert [OPTIONS] PATTERN [PATTERNS]'
-        opts.separator <<-EOS
+        add_banner(opts)
+
+        add_help(opts)
+        add_pool_size(opts, options)
+        add_limit(opts, options)
+        add_console(opts, options)
+        add_sleep_delay(opts, options)
+        add_handler(opts, options)
+        add_bug_dir(opts, options)
+
+        opts.parse! args
+      end
+
+      raise ArgumentError.new("No file pattern was given") if args.empty?
+      [options, args]
+    end
+
+    def add_banner(opts)
+      opts.banner  = 'Usage: fuzzbert [OPTIONS] PATTERN [PATTERNS]'
+      opts.separator <<-EOS
 
 Run your random tests by pointing fuzzbert to a single or many explicit files
 or by providing a pattern. The default pattern is 'fuzz/**/fuzz_*.rb, assuming
@@ -49,59 +67,66 @@ named fuzz located under the current directory that you are in.
 By default, fuzzbert will run the tests you specify forever, be sure to hit
 CTRL+C when you are done or specify a limit with '--limit'.
 
-        EOS
+      EOS
 
-        opts.version = FuzzBert::VERSION
-
-        opts.on '-h', '--help', 'Run ' do
-          puts opts
-          exit
-        end
-
-        opts.on '--pool-size SIZE', Integer, "Sets the number of concurrently running processes to SIZE. Default is 4." do |n|
-          options[:pool_size] = n.to_i
-        end
-
-        opts.on '--limit LIMIT', Integer, "Instead of running permanently, fuzzing will be stopped after running LIMIT of instances." do |n|
-          options[:limit] = n.to_i
-        end
-
-        opts.on '--console', "Output the failing cases including data on the console instead of saving them in a file." do
-          options[:handler] = FuzzBert::Handler::Console.new
-        end
-
-        opts.on '--sleep-delay SECONDS', Float, "Specify the number of SECONDS that the main process sleeps before checking that the limit has been reached. Default is 1." do |f|
-          options[:sleep_delay] = f.to_f
-        end
-
-        opts.on '--handler CLASS', String, "Specify the full path to a CLASS that will serve as your Handler." do |path|
-          #lazy initialization: the Handler must be defined in one of the fuzzer files
-          options[:handler] = Class.new do
-            @@path = path
-
-            def handle(error_data)
-              @inner ||= class_for_name(@@path).new
-              @inner.handle(error_data)
-            end
-
-            def class_for_name(path)
-              path.split('::').inject(Object) { |mod, class_name| mod.const_get(class_name) }
-            end
-          end.new
-        end
-
-        opts.on '--bug-dir DIRECTORY', String, "The DIRECTORY where the resulting bug files will be stored. Default is the current directory." do |dir|
-          raise ArgumentError.new "#{dir} is not a directory" unless Dir.exists?(dir)
-          options[:handler] = FuzzBert::Handler::FileOutput.new(dir)
-        end
-
-        opts.parse! args
-      end
-
-      raise ArgumentError.new("No file pattern was given") if args.empty?
-      [options, args]
+      opts.version = FuzzBert::VERSION
     end
 
+    def add_help(opts)
+      opts.on '-h', '--help', 'Run ' do
+        puts opts
+        exit
+      end
+    end
+
+    def add_pool_size(opts, options)
+      opts.on '--pool-size SIZE', Integer, "Sets the number of concurrently running processes to SIZE. Default is 4." do |n|
+        options[:pool_size] = n.to_i
+      end
+    end
+
+    def add_limit(opts, options)
+      opts.on '--limit LIMIT', Integer, "Instead of running permanently, fuzzing will be stopped after running LIMIT of instances." do |n|
+        options[:limit] = n.to_i
+      end
+    end
+
+    def add_console(opts, options)
+      opts.on '--console', "Output the failing cases including data on the console instead of saving them in a file." do
+        options[:handler] = FuzzBert::Handler::Console.new
+      end
+    end
+
+    def add_sleep_delay(opts, options)
+      opts.on '--sleep-delay SECONDS', Float, "Specify the number of SECONDS that the main process sleeps before checking that the limit has been reached. Default is 1." do |f|
+        options[:sleep_delay] = f.to_f
+      end
+    end
+
+    def add_handler(opts, options)
+      opts.on '--handler CLASS', String, "Specify the full path to a CLASS that will serve as your Handler." do |path|
+        #lazy initialization: the Handler must be defined in one of the fuzzer files
+        options[:handler] = Class.new do
+          @@path = path
+
+          def handle(error_data)
+            @inner ||= class_for_name(@@path).new
+            @inner.handle(error_data)
+          end
+
+          def class_for_name(path)
+            path.split('::').inject(Object) { |mod, class_name| mod.const_get(class_name) }
+          end
+        end.new
+      end
+    end
+
+    def add_bug_dir(opts, options)
+      opts.on '--bug-dir DIRECTORY', String, "The DIRECTORY where the resulting bug files will be stored. Default is the current directory." do |dir|
+        raise ArgumentError.new "#{dir} is not a directory" unless Dir.exists?(dir)
+        options[:handler] = FuzzBert::Handler::FileOutput.new(dir)
+      end
+    end
 
 end
 

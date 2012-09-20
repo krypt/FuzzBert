@@ -17,8 +17,9 @@ fuzz "OpenSSL command line (asn1parse)" do
 
   data "Indefinite length sequence" do
     c = FuzzBert::Container.new
-    c << FuzzBert::Generators.fixed("\x30\x80")
+    c << FuzzBert::Generators.fixed("\x31\x80")
     c << FuzzBert::Generators.random
+    c << FuzzBert::Generators.fixed("\x00\x00")
     c.generator
   end
 

@@ -54,29 +54,46 @@ class FuzzBert::Executor
 
     def trap_child_exit
       trap(:CHLD) do 
-        begin
-          while exitval = Process.wait2(-1, Process::WNOHANG)
-            pid = exitval[0]
-            status = exitval[1]
-            data_ary = @data_cache.delete(pid)
-            unless status.success?
-              handle({ 
-                id: data_ary[0], 
-                data: data_ary[1], 
-                pid: pid, 
-                status: status
-              }) unless interrupted(status)
-            end
-            @n += 1
-            if @limit == -1 || @n < @limit
-              run_instance(*@producer.next) 
-            else
-              @running = false
-            end
-          end
-        rescue Errno::ECHILD
+        while_child_exits do |exitval|
+          pid = exitval[0]
+          status = exitval[1]
+          data_ary = @data_cache.delete(pid)
+
+          handle({ 
+            id: data_ary[0], 
+            data: data_ary[1], 
+            pid: pid, 
+            status: status
+          }) if status_failed?(status)
+
+          start_new_child
         end
       end
+    end
+
+    def while_child_exits
+      while exitval = Process.wait2(-1, Process::WNOHANG)
+        yield exitval
+      end
+    rescue Errno::ECHILD
+      # fine
+    end
+
+    def status_failed?(status)
+      !status.success? && !interrupted(status)
+    end
+
+    def start_new_child
+      @n += 1
+      if limit_reached?
+        run_instance(*@producer.next) 
+      else
+        @running = false
+      end
+    end
+
+    def limit_reached?
+      @limit == -1 || @n < @limit
     end
 
     def trap_interrupt
