@@ -56,6 +56,10 @@ module FuzzBert::Handler
   class Console
     include FuzzBert::Handler::ConsoleHelper
 
+    def initialize
+      $stdout.sync = true
+    end
+
     def handle(error_data)
       puts "#{error_data[:id]} failed. Data: #{error_data[:data].inspect}"
       info(error_data)

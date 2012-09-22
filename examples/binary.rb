@@ -8,9 +8,9 @@ fuzz "String.to_i" do
     end
   end
 
-  data "completely random" { FuzzBert::Generators.random }
+  data("completely random") { FuzzBert::Generators.random }
 
-  data "1..1000" { FuzzBert::Generators.cycle(1..1000) }
+  data("1..1000") { FuzzBert::Generators.cycle(1..1000) }
 
   data "leading zero, fixed length of 100 digits" do
     c = FuzzBert::Container.new
