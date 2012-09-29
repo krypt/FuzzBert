@@ -3,7 +3,6 @@ require 'fuzzbert'
 fuzz "OpenSSL command line (asn1parse)" do
 
   deploy do |data|
-    raise "boo"
     IO.popen("openssl asn1parse -inform DER -noout", "w") do |io|
       io.write(data)
     end
