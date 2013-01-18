@@ -252,6 +252,6 @@ connected to Ruby at all - have a look in the examples that ship with FuzzBert.
  
 ## License
 
-Copyright (c) 2012 Martin Boßlet. Distributed under the MIT License. See LICENSE for 
+Copyright (c) 2012-2013 Martin Boßlet. Distributed under the MIT License. See LICENSE for 
 further details.
 
