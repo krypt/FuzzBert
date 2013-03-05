@@ -15,21 +15,16 @@ class MyHandler
   end
 end
 
-fuzz "OpenSSL command line (asn1parse)" do
+fuzz "Some application" do
 
   deploy do |data|
-    IO.popen("openssl asn1parse -inform DER -noout", "w") do |io|
-      io.write(data)
-    end
-    status = $?
-    unless status.exited? && status.success?
-      raise RuntimeError.new("bug!")
-    end
+    #send the generated data to your application here instead
+    p data
   end
 
   data("completely random") { FuzzBert::Generators.random }
 
-  data "Indefinite length sequence" do
+  data "Payload" do
     c = FuzzBert::Container.new
     c << FuzzBert::Generators.fixed("\x30\x80")
     c << FuzzBert::Generators.random

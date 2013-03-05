@@ -189,8 +189,8 @@ fuzz "My Web App" do
 
   data "JSON generated from a template" do
     t = FuzzBert::Template.new '{ user: { id: ${id}, name: "${name}" } }'
-    t.set(:id) { FuzzBert::Generators.cycle(1..10000) }
-    t.set(:name) { FuzzBert::Generators.random }
+    t.set(:id, FuzzBert::Generators.cycle(1..10000))
+    t.set(:name) { "Fixed text plus two random bytes: #{FuzzBert::Generators.random_fixlen(2).call}" }
     t.generator
   end
 
@@ -199,7 +199,11 @@ end
 
 Simply specify your template variables using `${..}` and assign a callback for
 them via `set`. Of course you may escape the dollar sign with a backslash as
-usual.
+usual. The Template#set method takes as its first argument the symbol
+representing the template variable. To specify the data to be generated, it
+either takes a second argument in form of a proc or lambda (to use the
+built-in generators for example, as in `:id` in the example) or it takes a
+block that allows to define the data ad-hoc (as in `:name`). 
 
 ## Mutators
 

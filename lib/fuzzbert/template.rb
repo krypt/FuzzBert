@@ -8,13 +8,13 @@ class FuzzBert::Template
     @callbacks = {}
   end
 
-  def set(name, &blk)
-    @callbacks[name] = blk
+  def set(name, cb=nil, &blk)
+    @callbacks[name] = cb || blk
   end
 
   def to_data
     "".tap do |buf|
-      @template.each { |t| buf << t.to_data(@callbacks) }
+      @template.each { |t| buf << t.to_data(@callbacks).to_s }
     end
   end
 
