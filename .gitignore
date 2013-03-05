@@ -4,3 +4,17 @@ tmp
 *~
 .rbx/
 .idea/
+*.gem
+*.rbc
+.bundle
+.config
+lib/bundler/man
+pkg
+rdoc
+spec/reports
+tmp
+
+# YARD artifacts
+.yardoc
+_yardoc
+doc/

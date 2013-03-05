@@ -16,6 +16,13 @@ describe FuzzBert::Template do
       t.to_data.should == "abc"
     end
 
+    it "takes an optional proc to define the callback" do
+      t = FuzzBert::Template.new "a${var}c"
+      cb = -> { "b" }
+      t.set(:var, cb)
+      t.to_data.should == "abc"
+    end
+
     it "takes only Symbols to reference the template variables" do
       t = FuzzBert::Template.new "a${var}c"
       t.set("var") { "b" }
