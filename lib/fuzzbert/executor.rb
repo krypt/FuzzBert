@@ -119,11 +119,11 @@ class FuzzBert::Executor
 
     def interrupted(status)
       return false if status.exited?
-      return true if status.termsig == nil || status.termsig == 2
+      status.termsig == nil || status.termsig == 2
     end
 
     def conditional_sleep
-      sleep @sleep_delay until @running == false
+      sleep @sleep_delay until !@running
     end
 
     class DataProducer
