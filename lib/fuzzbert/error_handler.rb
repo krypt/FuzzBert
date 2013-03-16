@@ -3,7 +3,6 @@ module FuzzBert::Handler
 
   module ConsoleHelper
     def info(error_data)
-      id = error_data[:id]
       status = error_data[:status]
 
       crashed = status.termsig

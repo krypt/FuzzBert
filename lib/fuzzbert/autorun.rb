@@ -35,7 +35,6 @@ module FuzzBert::AutoRun
 
     def process_args(args = [])
       options = {}
-      orig_args = args.dup
 
       OptionParser.new do |opts|
         add_banner(opts)
