@@ -1,6 +1,6 @@
 require 'fuzzbert'
 
 fuzz "nothing" do
-  deploy { |data| }
+  deploy { |_| }
   data("some") { -> {"a"} }
 end
