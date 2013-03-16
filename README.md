@@ -68,8 +68,8 @@ end
 line tool", "fuzz this particular URL of my web app" or "fuzz this library method 
 taking external input".
 
-Within a `fuzz` block, there must be one occurence of `deploy` and one or several
-occurences of `data`. The `deploy` block is the spot where we deliver the random
+Within a `fuzz` block, there must be one occurrences of `deploy` and one or several
+occurrences of `data`. The `deploy` block is the spot where we deliver the random
 payload that has been generated. It is agnostic about the actual target in order to
 leave you free to fuzz whatever you require in your particular case. The `data`
 blocks define the shape of the random data being generated. There can be more than
