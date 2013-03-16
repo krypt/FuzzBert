@@ -17,7 +17,7 @@ class Runner
   end
 
   def evaluate
-    failed = @results.select { |k,v| v == false }
+    failed = @results.select { |k,v| !v }
     puts
     if failed.empty?
       echo_success "The build was successful."

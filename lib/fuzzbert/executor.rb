@@ -93,7 +93,7 @@ class FuzzBert::Executor
   end
 
   def conditional_sleep
-    sleep 0.1 until @running == false
+    sleep 0.1 until !@running
   end
 
   class DataProducer
