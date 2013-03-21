@@ -15,6 +15,6 @@ module FuzzBert::Spec
 end
 
 fuzz "failing" do
-  deploy { |data| raise "boo!" }
+  deploy { |_| raise "boo!" }
   data("some") { -> {"a"} }
 end
