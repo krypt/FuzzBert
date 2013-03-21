@@ -88,7 +88,7 @@ describe FuzzBert::Executor do
           data("1") { -> { "a" } }
         end
       end
-      let (:handler) { TestHandler.new { |data| raise RuntimeError.new } }
+      let (:handler) { TestHandler.new { |_| raise RuntimeError.new } }
       it { -> { subject }.should_not raise_error }
     end
 
@@ -96,22 +96,22 @@ describe FuzzBert::Executor do
       called = false
       let (:suite) do
         FuzzBert::TestSuite.create("suite") do
-          deploy { |data| raise "boo!" }
+          deploy { |_| raise "boo!" }
           data("1") { -> { "a" } }
         end
       end
-      let (:handler) { TestHandler.new { |data| called = true } }
+      let (:handler) { TestHandler.new { |_| called = true } }
       it { -> { subject }.should_not raise_error; called.should be_true }
     end
 
     context "allows rescued exceptions" do
       let (:suite) do
         FuzzBert::TestSuite.create("suite") do
-          deploy { |data| begin; raise "boo!"; rescue RuntimeError; end }
+          deploy { |_| begin; raise "boo!"; rescue RuntimeError; end }
           data("1") { -> { "a" } }
         end
       end
-      let (:handler) { TestHandler.new { |data| raise RuntimeError.new } }
+      let (:handler) { TestHandler.new { |_| raise RuntimeError.new } }
       it { -> { subject }.should_not raise_error }
     end
 
@@ -119,11 +119,11 @@ describe FuzzBert::Executor do
       called = false
       let (:suite) do
         FuzzBert::TestSuite.create("suite") do
-          deploy { |data| Process.kill(:SEGV, Process.pid) }
+          deploy { |_| Process.kill(:SEGV, Process.pid) }
           data("1") { -> { "a" } }
         end
       end
-      let (:handler) { TestHandler.new { |data| called = true } }
+      let (:handler) { TestHandler.new { |_| called = true } }
       let (:generator) { FuzzBert::Generator.new("test") { "a" } }
       it { -> { subject }.should_not raise_error; called.should be_true }
     end if false #don't want to SEGV every time
