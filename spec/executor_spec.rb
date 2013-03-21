@@ -5,6 +5,7 @@ describe FuzzBert::Executor do
 
   describe "::new" do
     let(:test) do
+      #NOTE: Do we need the test variable here?
       test = FuzzBert::Test.new(lambda { |data| data })
       FuzzBert::TestSuite.create("suite") do
         deploy { |data| data }
