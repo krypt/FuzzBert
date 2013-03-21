@@ -3,6 +3,7 @@ rvm:
   - ruby-head
   - 1.9.3
   - rbx-19mode
+  - 2.0.0
 gemfile:
   - Gemfile
 notifications:
