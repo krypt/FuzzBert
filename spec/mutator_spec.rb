@@ -6,7 +6,7 @@ describe FuzzBert::Mutator do
   describe "::new" do
     it "takes a (valid) base value" do
       value = "test"
-      mut = FuzzBert::Mutator.new(value)
+      -> {FuzzBert::Mutator.new(value)}.should_not raise_error
     end
   end
 
