@@ -1,8 +1,11 @@
+$:.unshift File.expand_path('../lib', __FILE__)
+
 require 'fileutils'
+require 'fuzzbert/version'
 
 Gem::Specification.new do |s|
   s.name = 'fuzzbert'
-  s.version = '1.0.2'
+  s.version = FuzzBert::VERSION
   s.author = 'Martin Bosslet'
   s.email = 'Martin.Bosslet@gmail.com'
   s.homepage = 'https://github.com/krypt/FuzzBert'
