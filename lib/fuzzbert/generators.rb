@@ -3,7 +3,7 @@ require 'base64'
 module FuzzBert::Generators
 
   module_function
-    
+
   def random(limit=1024)
     -> { random_bytes(limit) { |data| data } }
   end
@@ -21,7 +21,7 @@ module FuzzBert::Generators
   end
 
   def random_b64_fixlen(len)
-    -> { random_bytes_fixlen(b64_len(len)) { |data| Base64.encode(data) } }
+    -> { random_bytes_fixlen(b64_len(len)) { |data| Base64.encode64(data) } }
   end
 
   def random_hex_fixlen(len)
@@ -37,7 +37,7 @@ module FuzzBert::Generators
       ret
     end
   end
-  
+
   def fixed(data)
     -> { data }
   end
