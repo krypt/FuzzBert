@@ -11,7 +11,7 @@ integrate random tests in your project with minimal effort.
 
 For further information on random testing, here are two excellent starting points:
 
-* [Udacity CS258](http://www.udacity.com/overview/Course/cs258/)
+* [Udacity CS258](https://www.udacity.com/course/software-testing--cs258)
 * [Babysitting an Army of Monkeys](http://fuzzinginfo.files.wordpress.com/2012/05/cmiller-csw-2010.pdf)
 
 ## Installation
